@@ -1,0 +1,13 @@
+olist:
+  outputs:
+    dev:
+      type: snowflake
+      account: YOUR_ACCOUNT_HERE         # e.g. xy12345.us-east-1
+      user: YOUR_USER_HERE
+      password: YOUR_PASSWORD_HERE
+      role: ACCOUNTADMIN
+      database: OLIST_DB
+      schema: RAW
+      warehouse: COMPUTE_WH
+      threads: 4
+  target: dev

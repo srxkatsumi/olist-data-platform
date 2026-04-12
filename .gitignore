@@ -90,5 +90,5 @@ standalone_admin_password.txt
 .idea/
 *.swp
 *.swo
-.DS_Storedbt/olist/profiles.yml
+.DS_Store
 dbt/olist/profiles.yml
