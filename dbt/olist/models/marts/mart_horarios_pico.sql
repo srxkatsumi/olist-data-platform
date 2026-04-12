@@ -1,5 +1,5 @@
 -- mart_horarios_pico.sql
--- Pergunta: Quais horários têm mais compras?
+-- Question: Which hours have the most purchases?
 {{ config(materialized='table') }}
 
 with pedidos as (

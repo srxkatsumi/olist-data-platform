@@ -1,5 +1,5 @@
 -- mart_clientes_top.sql
--- Pergunta: Quais clientes compram mais?
+-- Question: Which customers buy the most?
 {{ config(materialized='table') }}
 
 with pedidos as (

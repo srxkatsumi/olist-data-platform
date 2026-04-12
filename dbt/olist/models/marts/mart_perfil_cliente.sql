@@ -1,5 +1,5 @@
 -- mart_perfil_cliente.sql
--- Pergunta: Qual o perfil do público alvo?
+-- Question: What is the target audience profile?
 {{ config(materialized='table') }}
 
 with pedidos as (
@@ -19,7 +19,7 @@ resultado as (
         count(p.ORDER_ID)                       as TOTAL_PEDIDOS,
         round(avg(pg.PAYMENT_VALUE::float), 2)  as TICKET_MEDIO,
         round(sum(pg.PAYMENT_VALUE::float), 2)  as RECEITA_TOTAL,
-        -- Método de pagamento mais usado
+        -- Most used payment method
         mode(pg.PAYMENT_TYPE)                   as PAGAMENTO_PREFERIDO
     from pedidos p
     left join clientes c on p.CUSTOMER_ID = c.CUSTOMER_ID
