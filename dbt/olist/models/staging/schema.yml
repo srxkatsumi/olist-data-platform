@@ -1,0 +1,67 @@
+version: 2
+
+models:
+  - name: stg_orders
+    description: "Cleaned orders from Olist with standardized timestamps"
+    
+    config:
+      contract:
+        enforced: true
+    
+    columns:
+      - name: ORDER_ID
+        data_type: varchar
+        description: "Unique order identifier"
+        tests:
+          - not_null
+          - unique
+
+      - name: CUSTOMER_ID
+        data_type: varchar
+        description: "Customer identifier — one customer can have multiple orders"
+        tests:
+          - not_null
+
+      - name: ORDER_STATUS
+        data_type: varchar
+        description: "Current status of the order"
+        tests:
+          - accepted_values:
+              values: ['delivered', 'shipped', 'canceled', 'unavailable',
+                       'invoiced', 'processing', 'created', 'approved']
+
+      - name: ORDER_PURCHASED_AT
+        data_type: timestamp_ntz
+        description: "Timestamp when the order was placed"
+
+      - name: ORDER_APPROVED_AT
+        data_type: timestamp_ntz
+        description: "Timestamp when the payment was approved"
+
+      - name: ORDER_SHIPPED_AT
+        data_type: timestamp_ntz
+        description: "Timestamp when the order was handed to the carrier"
+
+      - name: ORDER_DELIVERED_AT
+        data_type: timestamp_ntz
+        description: "Timestamp when the order was delivered to the customer"
+
+      - name: ORDER_ESTIMATED_AT
+        data_type: timestamp_ntz
+        description: "Estimated delivery date"
+
+      - name: ORDER_MONTH
+        data_type: timestamp_ntz
+        description: "Purchase month (truncated to first day of month)"
+
+      - name: ORDER_HOUR
+        data_type: timestamp_ntz
+        description: "Purchase hour (truncated)"
+
+      - name: ORDER_DAY_OF_WEEK
+        data_type: number
+        description: "Day of the week (0=Sunday, 6=Saturday)"
+
+      - name: ORDER_HOUR_OF_DAY
+        data_type: number
+        description: "Hour of the day (0-23)"

@@ -1,0 +1,127 @@
+version: 2
+
+models:
+
+  - name: mart_sazonalidade
+    description: "Sales seasonality patterns by month"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: MES
+        data_type: timestamp_ntz
+        description: "Reference month (first day of the month)"
+        tests:
+          - not_null
+          - unique
+      - name: ANO
+        data_type: number
+        description: "Year extracted from the reference month"
+      - name: NUMERO_MES
+        data_type: number
+        description: "Month number (1=January, 12=December)"
+        tests:
+          - accepted_values:
+              values: [1,2,3,4,5,6,7,8,9,10,11,12]
+      - name: TOTAL_PEDIDOS
+        data_type: number
+        description: "Total orders placed in the month"
+      - name: PEDIDOS_ENTREGUES
+        data_type: number
+        description: "Orders successfully delivered"
+      - name: PEDIDOS_CANCELADOS
+        data_type: number
+        description: "Orders canceled"
+      - name: TAXA_CANCELAMENTO_PCT
+        data_type: number
+
+        description: "Cancellation rate as a percentage"
+
+  - name: mart_clientes_top
+    description: "Customers ranked by total lifetime value"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: CUSTOMER_ID
+        data_type: varchar
+        description: "Unique customer identifier"
+        tests:
+          - not_null
+          - unique
+      - name: CIDADE
+        data_type: varchar
+        description: "Customer city"
+      - name: ESTADO
+        data_type: varchar
+        description: "Customer state"
+      - name: TOTAL_PEDIDOS
+        data_type: number
+        description: "Total number of delivered orders"
+      - name: VALOR_TOTAL_GASTO
+        data_type: float
+        description: "Total amount spent by the customer"
+      - name: TICKET_MEDIO
+        data_type: float
+        description: "Average order value"
+      - name: PRIMEIRA_COMPRA
+        data_type: timestamp_ntz
+        description: "Timestamp of the customer's first order"
+      - name: ULTIMA_COMPRA
+        data_type: timestamp_ntz
+        description: "Timestamp of the customer's most recent order"
+
+  - name: mart_horarios_pico
+    description: "Peak order hours and days of the week"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: HORA_DO_DIA
+        data_type: number
+        description: "Hour of the day (0-23)"
+        tests:
+          - not_null
+      - name: DIA_DA_SEMANA
+        data_type: number
+        description: "Day of the week (0=Sunday, 6=Saturday)"
+        tests:
+          - not_null
+      - name: TOTAL_PEDIDOS
+        data_type: number
+        description: "Total orders placed at this hour and day"
+      - name: MEDIA_DIAS_ENTREGA
+        data_type: number
+        description: "Average delivery time in days"
+
+  - name: mart_perfil_cliente
+    description: "Geographic and behavioral customer profile by city and state"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: ESTADO
+        data_type: varchar
+        description: "Customer state"
+        tests:
+          - not_null
+      - name: CIDADE
+        data_type: varchar
+        description: "Customer city"
+        tests:
+          - not_null
+      - name: TOTAL_CLIENTES
+        data_type: number
+        description: "Number of distinct customers"
+      - name: TOTAL_PEDIDOS
+        data_type: number
+        description: "Total orders placed"
+      - name: TICKET_MEDIO
+        data_type: float
+        description: "Average order value"
+      - name: RECEITA_TOTAL
+        data_type: float
+        description: "Total revenue generated"
+      - name: PAGAMENTO_PREFERIDO
+        data_type: varchar
+        description: "Most frequently used payment method"
