@@ -1,0 +1,16 @@
+version: 2
+
+sources:
+  - name: raw
+    database: OLIST_DB
+    schema: RAW
+    tables:
+      - name: OLIST_ORDERS_DATASET
+      - name: OLIST_CUSTOMERS_DATASET
+      - name: OLIST_ORDER_ITEMS_DATASET
+      - name: OLIST_ORDER_PAYMENTS_DATASET
+      - name: OLIST_ORDER_REVIEWS_DATASET
+      - name: OLIST_SELLERS_DATASET
+      - name: OLIST_PRODUCTS_DATASET
+      - name: OLIST_GEOLOCATION_DATASET
+      - name: PRODUCT_CATEGORY_NAME_TRANSLATION
