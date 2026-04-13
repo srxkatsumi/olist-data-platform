@@ -427,6 +427,7 @@ This project is a Phase 1 foundation. Here is what a production-grade version lo
 |---|---|
 | Replace local PostgreSQL with AWS RDS | Remove the network workaround; RDS lives in the same VPC as Snowflake |
 | Replace local Airflow with AWS MWAA | Managed, scalable orchestration with no infrastructure overhead |
+| Separate Snowflake schemas (STAGING, MARTS) | Currently both layers share the RAW schema — Phase 3 introduces proper layer isolation |
 | SCD Type 2 (HST schema in dbt) | Track historical changes in slowly-changing dimensions such as customer address |
 | Incremental dbt models | Only process new or changed records instead of full refresh |
 | Multiple Snowflake warehouses | Separate compute for analytics, pipelines, and dbt with no resource contention |
