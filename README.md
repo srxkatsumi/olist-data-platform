@@ -8,9 +8,9 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 ![Airbyte](https://img.shields.io/badge/Airbyte-615EFF?style=flat&logo=airbyte&logoColor=white)
 ![Metabase](https://img.shields.io/badge/Metabase-509EE3?style=flat&logo=metabase&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Phase%201%20Complete-success?style=flat)
+![Status](https://img.shields.io/badge/Status-Phase%202%20In%20Progress-blue?style=flat)
 
-**Status: Phase 1 complete — data ingestion and transformation pipeline operational. Phase 2 (analysis and dashboards) in progress.**
+**Status: Phase 1 complete — pipeline operational. Phase 2 in progress — analysis layer (7/29 analyses complete).**
 
 ---
 
@@ -29,6 +29,8 @@
   - [Step 5: Prepare Snowflake](#step-5-prepare-snowflake)
   - [Step 6: Run dbt transformations](#step-6-run-dbt-transformations)
   - [Step 7: Connect Metabase](#step-7-connect-metabase-to-snowflake)
+- [Phase 2 — Analysis Layer](#phase-2--analysis-layer)
+- [Snowflake Cost Tracking](#snowflake-cost-tracking)
 - [Mart Models: What Gets Built](#mart-models-what-gets-built)
 - [Scalability: Where This Goes Next](#scalability-where-this-goes-next)
 - [Key Concepts Reference](#key-concepts-reference)
@@ -397,6 +399,36 @@ Then at `http://localhost:3000`:
 
 ---
 
+## Phase 2 — Analysis Layer
+
+Phase 2 implements 29 business analyses as dbt SQL files under `dbt/olist/analyses/`. Each analysis compiles via `dbt compile` and runs directly on Snowflake without creating persistent objects. Analyses that prove valuable will be promoted to mart models in Phase 3.
+
+**Overall Phase 2 progress**
+████░░░░░░░░░░░░░░░░ 24% (7/29 analyses)
+
+| Group | Progress | Status |
+|---|---|---|
+| Group 1 — Sales & Revenue | `███████████████████ 100%` (7/7) | ✅ complete |
+| Group 2 — Customers | `░░░░░░░░░░░░░░░░░░░ 0%` (0/5) | 🔄 next |
+| Group 3 — Deliveries & Operations | `░░░░░░░░░░░░░░░░░░░ 0%` (0/5) | ⏳ pending |
+| Group 4 — Sellers | `░░░░░░░░░░░░░░░░░░░ 0%` (0/4) | ⏳ pending |
+| Group 5 — Reviews & Satisfaction | `░░░░░░░░░░░░░░░░░░░ 0%` (0/4) | ⏳ pending |
+| Group 6 — Seasonality & Hours | `░░░░░░░░░░░░░░░░░░░ 0%` (0/4) | ⏳ pending |
+
+---
+
+## Snowflake Cost Tracking
+
+This table documents the real cloud cost of running the pipeline as the project grows across phases. It is updated manually as each analysis group is completed.
+
+| Date | Milestone | Compute spend (USD) | Credits used |
+|---|---|---|---|
+| 2026-04-16 | Phase 1 complete + Phase 2 Group 1 (7 analyses, 9 source tables loaded) | $12.48 | 3.64 |
+
+> Cost baseline: $3.90 per credit · Average daily cost: $0.03
+
+---
+
 ## Mart Models: What Gets Built
 
 | Model | Business Question |
@@ -405,6 +437,18 @@ Then at `http://localhost:3000`:
 | `mart_clientes_top` | Which customers have the highest lifetime value? |
 | `mart_horarios_pico` | At what hours and days do most orders happen? |
 | `mart_perfil_cliente` | What is the geographic and behavioral profile of the customer base? |
+
+### Analyses (Phase 2)
+
+| File | Description |
+|---|---|
+| `01_top_categories_by_revenue.sql` | Top 10 product categories by revenue and order volume |
+| `02_monthly_revenue_trend.sql` | Monthly and yearly revenue trend with month-over-month difference |
+| `03_cancellation_rate_by_category.sql` | Cancellation rate per category, filtered to categories with 100+ orders |
+| `04_avg_ticket_by_category.sql` | Average, min and max item price per category |
+| `05_pareto_revenue_by_category.sql` | Pareto analysis showing which categories concentrate 80% of revenue |
+| `06_payment_method_by_state.sql` | Preferred payment methods broken down by Brazilian state |
+| `07_installments_by_category.sql` | Average number of credit card installments per product category |
 
 ---
 
