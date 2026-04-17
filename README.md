@@ -8,9 +8,9 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 ![Airbyte](https://img.shields.io/badge/Airbyte-615EFF?style=flat&logo=airbyte&logoColor=white)
 ![Metabase](https://img.shields.io/badge/Metabase-509EE3?style=flat&logo=metabase&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Phase%202%20In%20Progress-blue?style=flat)
+![Status](https://img.shields.io/badge/Status-Phase%202%20Complete-success?style=flat)
 
-**Status: Phase 1 complete — pipeline operational. Phase 2 in progress — analysis layer (7/29 analyses complete).**
+**Status: Phase 1 complete — pipeline operational. Phase 2 complete — 29 analyses + 17 mart models delivered.**
 
 ---
 
@@ -401,19 +401,19 @@ Then at `http://localhost:3000`:
 
 ## Phase 2 — Analysis Layer
 
-Phase 2 implements 29 business analyses as dbt SQL files under `dbt/olist/analyses/`. Each analysis compiles via `dbt compile` and runs directly on Snowflake without creating persistent objects. Analyses that prove valuable will be promoted to mart models in Phase 3.
+Phase 2 implements 29 business analyses as dbt SQL files under `dbt/olist/analyses/` and promotes 13 of them to permanent mart models under `dbt/olist/models/marts/`. Each analysis compiles via `dbt compile` and runs directly on Snowflake. Promoted analyses become tables refreshed automatically by the Airflow DAG every 24 hours and consumed by Metabase dashboards.
 
 **Overall Phase 2 progress**
-████░░░░░░░░░░░░░░░░ 24% (7/29 analyses)
+████████████████████ 100% (29/29 analyses)
 
 | Group | Progress | Status |
 |---|---|---|
 | Group 1 — Sales & Revenue | `███████████████████ 100%` (7/7) | ✅ complete |
-| Group 2 — Customers | `░░░░░░░░░░░░░░░░░░░ 0%` (0/5) | 🔄 next |
-| Group 3 — Deliveries & Operations | `░░░░░░░░░░░░░░░░░░░ 0%` (0/5) | ⏳ pending |
-| Group 4 — Sellers | `░░░░░░░░░░░░░░░░░░░ 0%` (0/4) | ⏳ pending |
-| Group 5 — Reviews & Satisfaction | `░░░░░░░░░░░░░░░░░░░ 0%` (0/4) | ⏳ pending |
-| Group 6 — Seasonality & Hours | `░░░░░░░░░░░░░░░░░░░ 0%` (0/4) | ⏳ pending |
+| Group 2 — Customers | `███████████████████ 100%` (5/5) | ✅ complete |
+| Group 3 — Deliveries & Operations | `███████████████████ 100%` (5/5) | ✅ complete |
+| Group 4 — Sellers | `███████████████████ 100%` (4/4) | ✅ complete |
+| Group 5 — Reviews & Satisfaction | `███████████████████ 100%` (4/4) | ✅ complete |
+| Group 6 — Seasonality & Hours | `███████████████████ 100%` (4/4) | ✅ complete |
 
 ---
 
@@ -424,8 +424,12 @@ This table documents the real cloud cost of running the pipeline as the project 
 | Date | Milestone | Compute spend (USD) | Credits used |
 |---|---|---|---|
 | 2026-04-16 | Phase 1 complete + Phase 2 Group 1 (7 analyses, 9 source tables loaded) | $12.48 | 3.64 |
+| 2026-04-17 | Phase 2 complete — all 29 analyses delivered across 6 groups | $15.56 | 4.20 |
+| 2026-04-17 | Phase 2 complete — 13 new marts deployed, 49 data tests passing | TBD | TBD |
 
-> Cost baseline: $3.90 per credit · Average daily cost: $0.03
+> Cost baseline: $3.90 per credit · Average daily cost: $0.04 · Storage: 383.7 MB
+
+> **Trial budget:** Snowflake provides $400 in free credits for trial accounts. This project has used $15.56 (3.9% of the total budget) to deliver a complete ELT pipeline with 29 business analyses across 6 analytical groups.
 
 ---
 
@@ -437,6 +441,19 @@ This table documents the real cloud cost of running the pipeline as the project 
 | `mart_clientes_top` | Which customers have the highest lifetime value? |
 | `mart_horarios_pico` | At what hours and days do most orders happen? |
 | `mart_perfil_cliente` | What is the geographic and behavioral profile of the customer base? |
+| `mart_top_categories` | Top 10 product categories ranked by total revenue and order volume |
+| `mart_revenue_trend` | Monthly and yearly revenue trend with month-over-month difference |
+| `mart_ticket_by_category` | Average, min and max item price per product category |
+| `mart_customer_profile_by_state` | Customer count, lifetime value and revenue share per Brazilian state |
+| `mart_delivery_time_by_state` | Average, min and max delivery time in days per state |
+| `mart_late_deliveries` | Monthly late delivery rate vs estimated date with average days late |
+| `mart_delay_by_category` | Delivery delay rate and average delivery days per product category |
+| `mart_top_sellers` | Top 20 sellers ranked by total revenue, order volume and revenue share |
+| `mart_reviews_by_category` | Average review score, positive and negative rates per product category |
+| `mart_seasonality` | Annual and monthly revenue seasonality with monthly share percentage |
+| `mart_peak_hours` | Peak purchase hours broken down by day of the week |
+| `mart_top_category_by_month` | Top selling category by revenue for each month across all years |
+| `mart_seasonal_dates` | Performance of Black Friday, Mothers Day, Christmas and Valentines vs regular days |
 
 ### Analyses (Phase 2)
 
@@ -449,6 +466,48 @@ This table documents the real cloud cost of running the pipeline as the project 
 | `05_pareto_revenue_by_category.sql` | Pareto analysis showing which categories concentrate 80% of revenue |
 | `06_payment_method_by_state.sql` | Preferred payment methods broken down by Brazilian state |
 | `07_installments_by_category.sql` | Average number of credit card installments per product category |
+| `08_single_purchase_customers.sql` | Customers who bought only once, grouped by city and state (churn risk indicator) |
+| `09_customers_above_avg_ticket.sql` | Global average ticket and percentage of customers spending above it |
+| `10_top_customers_geographic_profile.sql` | Revenue, lifetime value and order count per Brazilian state |
+| `11_lifetime_value_by_state.sql` | Average, max and min lifetime value per customer by state |
+| `12_recurring_vs_unique_customers.sql` | Recurring vs one-time buyers per state (note: Olist uses unique customer_id per order, so this is a dataset limitation) |
+| `13_avg_delivery_time_by_state.sql` | Average, min and max delivery time in days by state |
+| `14_late_deliveries_vs_estimated.sql` | Monthly late delivery rate vs estimated date with average days late |
+| `15_delay_rate_by_state.sql` | Delay rate and average days late per Brazilian state |
+| `16_delay_rate_by_category.sql` | Delivery delay rate per product category |
+| `17_delay_vs_review_score.sql` | Correlation between delivery timing (early/on time/late) and review score |
+| `18_top_sellers_by_revenue.sql` | Top 20 sellers by total revenue, orders and revenue share |
+| `19_sellers_with_highest_delay.sql` | Top 20 sellers with highest delivery delay rate |
+| `20_sellers_best_reviews.sql` | Top 20 sellers by average review score and positive rate |
+| `21_active_sellers_by_state.sql` | Active sellers, orders and revenue per state |
+| `22_review_score_distribution.sql` | Distribution of review scores 1 to 5 with average delivery days per score |
+| `23_worst_reviewed_categories.sql` | Product categories with lowest average review scores |
+| `24_delivery_time_vs_review.sql` | Review score and positive rate broken down by delivery time range |
+| `25_seller_response_time_vs_review.sql` | Impact of seller response time on review score |
+| `26_annual_monthly_seasonality.sql` | Annual and monthly revenue seasonality with monthly share percentage |
+| `27_peak_hours_by_weekday.sql` | Peak purchase hours broken down by day of the week |
+| `28_top_category_by_month.sql` | Top selling category per month across all years |
+| `29_black_friday_seasonal_dates.sql` | Performance of Black Friday, Mothers Day, Christmas and Valentine's Day vs regular days |
+
+> **Dataset note:** The Olist public dataset assigns a unique `customer_id` per order rather than per customer. This means analyses 08 and 12 reflect this limitation — recurring purchase patterns cannot be measured directly. In a production environment with a stable customer identifier, these analyses would provide churn and retention metrics.
+
+---
+
+## Data Quality
+
+All mart models are protected by two layers of validation enforced on every dbt run:
+
+**Contract enforcement** (`contract: enforced: true`) — validates structure before the table is created. If a column changes type or disappears, the deployment fails immediately.
+
+**Data tests** — validate the data inside the tables after creation:
+
+| Test | Coverage |
+|---|---|
+| `not_null` | Primary keys and critical columns across all 17 marts |
+| `unique` | Primary keys to prevent duplicate rows |
+| `accepted_values` | Categorical columns such as ORDER_STATUS, MONTH, DATE_TYPE |
+
+Current test coverage: **49 tests passing across 18 models** with zero failures.
 
 ---
 
