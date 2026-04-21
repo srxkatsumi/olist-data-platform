@@ -8,9 +8,9 @@
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
 ![Airbyte](https://img.shields.io/badge/Airbyte-615EFF?style=flat&logo=airbyte&logoColor=white)
 ![Metabase](https://img.shields.io/badge/Metabase-509EE3?style=flat&logo=metabase&logoColor=white)
-![Status](https://img.shields.io/badge/Status-Phase%202%20Complete-success?style=flat)
+![Status](https://img.shields.io/badge/Status-Phase%203%20In%20Progress-blue?style=flat)
 
-**Status: Phase 1 complete — pipeline operational. Phase 2 complete — 29 analyses + 17 mart models delivered.**
+**Status: Phase 1 complete — pipeline operational. Phase 2 complete — 29 analyses + 17 mart models delivered. Phase 3 in progress — multi-database architecture implemented.**
 
 ---
 
@@ -129,6 +129,22 @@ sequenceDiagram
     MB->>MRT: Query mart tables
     MB-->>MB: Render dashboards
 ```
+
+---
+
+### Database architecture
+
+The project uses two separate Snowflake databases to enforce a clear boundary between raw and processed data:
+
+| Database | Schema | Contents |
+|---|---|---|
+| `OLIST_DB` | `RAW` | Raw tables loaded by Airbyte — never modified |
+| `OLIST_OP` | `STG` | dbt staging models (views) |
+| `OLIST_OP` | `MRT` | dbt mart models (tables) — 17 KPI tables |
+| `OLIST_OP` | `ERR` | Data quality error tracking (Phase 3) |
+
+**Why two databases?**
+Separating raw from processed data enforces an important architectural principle: the source of truth (`OLIST_DB.RAW`) is immutable. Airbyte writes to it, nobody else does. All transformations happen in `OLIST_OP`, which dbt owns entirely. This mirrors how production data platforms are structured in real companies.
 
 ---
 
@@ -530,7 +546,7 @@ This project is a Phase 1 foundation. Here is what a production-grade version lo
 |---|---|
 | Replace local PostgreSQL with AWS RDS | Remove the network workaround; RDS lives in the same VPC as Snowflake |
 | Replace local Airflow with AWS MWAA | Managed, scalable orchestration with no infrastructure overhead |
-| Separate Snowflake schemas (STAGING, MARTS) | Currently both layers share the RAW schema — Phase 3 introduces proper layer isolation |
+| ✅ Separate Snowflake databases | `OLIST_DB` (raw) and `OLIST_OP` (STG, MRT, ERR) — fully implemented |
 | SCD Type 2 (HST schema in dbt) | Track historical changes in slowly-changing dimensions such as customer address |
 | Incremental dbt models | Only process new or changed records instead of full refresh |
 | Multiple Snowflake warehouses | Separate compute for analytics, pipelines, and dbt with no resource contention |
@@ -550,14 +566,15 @@ This project is a Phase 1 foundation. Here is what a production-grade version lo
 
 ### Who executes vs. who stores
 
-| Step | Executor | Storage |
+| Step | Executor | Writes to |
 |---|---|---|
 | Read CSVs | pandas | RAM (temporary) |
 | Insert into PostgreSQL | SQLAlchemy | PostgreSQL |
 | Extract from PostgreSQL | Airbyte | — |
-| Load to Snowflake RAW | Airbyte | Snowflake |
-| Transform: staging | dbt (SQL runs inside Snowflake) | Snowflake |
-| Transform: marts | dbt (SQL runs inside Snowflake) | Snowflake |
+| Load to Snowflake RAW | Airbyte | `OLIST_DB.RAW` |
+| Transform: staging | dbt (SQL runs inside Snowflake) | `OLIST_OP.STG` |
+| Transform: marts | dbt (SQL runs inside Snowflake) | `OLIST_OP.MRT` |
+| Data quality errors | dbt (Phase 3) | `OLIST_OP.ERR` |
 | Schedule everything | Airflow | — |
 | Visualize | Metabase | — |
 
