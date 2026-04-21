@@ -95,3 +95,4 @@ standalone_admin_password.txt
 .DS_Store
 dbt/olist/profiles.yml
 !dbt/olist/profiles.yml.example
+.pre-commit-config.yaml
