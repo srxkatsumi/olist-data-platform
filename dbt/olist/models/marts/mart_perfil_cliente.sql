@@ -25,6 +25,8 @@ resultado as (
     left join clientes c on p.CUSTOMER_ID = c.CUSTOMER_ID
     left join pagamentos pg on p.ORDER_ID = pg.ORDER_ID
     where p.ORDER_STATUS = 'delivered'
+      and c.CUSTOMER_CITY is not null
+      and c.CUSTOMER_STATE is not null
     group by c.CUSTOMER_STATE, c.CUSTOMER_CITY
     order by RECEITA_TOTAL desc
 )
