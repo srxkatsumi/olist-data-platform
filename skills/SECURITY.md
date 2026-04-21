@@ -26,7 +26,53 @@ All credentials must be handled through environment variables only:
 | GitHub Actions | `${{ secrets.SNOWFLAKE_PASSWORD }}` via repository secrets |
 
 Safe files (committed): `.env.example`, `profiles.yml.example`
-Never committed: `.env`, `profiles.yml`, `logs/`, `data/*.csv`
+
+## What never goes into git
+
+### Files that must never be committed
+```
+.env
+dbt/olist/profiles.yml
+logs/
+data/*.csv
+data/*.xlsx
+data/*.xls
+data/*.parquet
+data/*.json
+data/*.db
+data/*.sqlite
+*.sql.bak
+```
+
+### If sensitive data is accidentally staged or committed
+
+If you detect that any of the following has been staged or committed, **stop immediately** and follow these steps:
+
+1. **Do not push** — if the commit has not been pushed yet, unstage immediately:
+   ```bash
+   git reset HEAD <file>
+   git rm --cached <file>
+   ```
+
+2. **If already pushed** — the data is now public. Act immediately:
+   - Rotate the credential (change the password, revoke the token)
+   - Remove from git history using `git filter-branch` or `git filter-repo`
+   - Force push to overwrite history
+   - Notify the repository owner
+
+3. **Never try to hide it** by just deleting the file in a new commit — the sensitive data remains in git history and is permanently accessible.
+
+### Automatic protection layers
+
+This project has three layers of protection:
+
+| Layer | Tool | What it checks |
+|---|---|---|
+| Local | `.gitignore` | Prevents sensitive files from being tracked |
+| Local | `pre-commit` hook | Runs `dbt compile` before every commit |
+| Remote | GitHub Actions | Runs `dbt test` on every pull request |
+
+If any layer detects a problem, the commit or merge is blocked. Never bypass these checks with `--no-verify` or `--force` unless explicitly directed by the repository owner.
 
 ## Pre-commit and CI/CD
 
