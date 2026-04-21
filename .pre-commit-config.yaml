@@ -1,0 +1,9 @@
+repos:
+  - repo: local
+    hooks:
+      - id: dbt-compile
+        name: dbt compile check
+        entry: bash -c 'docker exec olist-airflow-scheduler-1 bash -c "cd /opt/airflow/dbt/olist && dbt compile --profiles-dir /opt/airflow/dbt/olist"'
+        language: system
+        pass_filenames: false
+        files: \.(sql|yml|yaml)$

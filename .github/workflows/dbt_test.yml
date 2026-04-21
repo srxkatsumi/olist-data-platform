@@ -1,0 +1,44 @@
+# Required GitHub repository secrets (Settings → Secrets and variables → Actions):
+#   SNOWFLAKE_ACCOUNT  — your Snowflake account identifier (e.g. xy12345.us-east-1)
+#   SNOWFLAKE_USER     — your Snowflake username
+#   SNOWFLAKE_PASSWORD — your Snowflake password
+
+name: dbt test
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  dbt-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Install dbt
+        run: pip install dbt-snowflake==1.9.0
+
+      - name: Create profiles.yml
+        run: |
+          mkdir -p dbt/olist
+          cat > dbt/olist/profiles.yml << EOF
+          olist:
+            outputs:
+              dev:
+                type: snowflake
+                account: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+                user: ${{ secrets.SNOWFLAKE_USER }}
+                password: ${{ secrets.SNOWFLAKE_PASSWORD }}
+                role: ACCOUNTADMIN
+                database: OLIST_DB
+                schema: RAW
+                warehouse: COMPUTE_WH
+                threads: 4
+            target: dev
+          EOF
+
+      - name: Run dbt test
+        working-directory: dbt/olist
+        run: dbt test --profiles-dir .

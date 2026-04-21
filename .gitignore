@@ -74,6 +74,8 @@ dbt/olist/target/
 dbt/olist/dbt_packages/
 dbt/olist/.user.yml
 dbt/olist/logs/
+target/
+dbt_packages/
 
 # =============================================================
 # AIRFLOW
@@ -92,3 +94,4 @@ standalone_admin_password.txt
 *.swo
 .DS_Store
 dbt/olist/profiles.yml
+!dbt/olist/profiles.yml.example
