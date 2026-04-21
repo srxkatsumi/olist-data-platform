@@ -537,3 +537,67 @@ models:
           - not_null
           - accepted_values:
               values: ['Black Friday 2017', 'Black Friday 2018', 'Christmas', 'New Year', 'Valentines', 'Mothers Day', 'regular day']
+
+  - name: mart_fraud_signals
+    description: "Customers and orders flagged for fraudulent behavior based on rule-based detection"
+    config:
+      contract:
+        enforced: true
+    columns:
+      - name: CUSTOMER_ID
+        data_type: varchar
+        description: "Customer identifier flagged for fraud"
+        tests:
+          - not_null
+      - name: FULL_NAME
+        data_type: varchar
+        description: "Customer full name"
+      - name: EMAIL
+        data_type: varchar
+        description: "Customer email"
+      - name: CREDIT_CARD_TOKEN
+        data_type: varchar
+        description: "Hashed credit card token — never the real card number"
+      - name: CREDIT_CARD_LAST4
+        data_type: varchar
+        description: "Last 4 digits of the credit card"
+      - name: CUSTOMER_STATE
+        data_type: varchar
+        description: "Customer state"
+      - name: CUSTOMER_CITY
+        data_type: varchar
+        description: "Customer city"
+      - name: FRAUD_TYPE
+        data_type: varchar
+        description: "Type of fraud signal detected"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['shared_credit_card', 'negative_payment_value', 'delivery_before_purchase']
+      - name: RISK_LEVEL
+        data_type: varchar
+        description: "Risk level of the fraud signal"
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['critical', 'high', 'medium', 'low']
+      - name: CUSTOMERS_SHARING_CARD
+        data_type: number
+        description: "Number of customers sharing the same credit card token"
+      - name: DIFFERENT_NAMES
+        data_type: number
+        description: "Number of different names using the same card"
+      - name: NAMES_LIST
+        data_type: varchar
+        description: "Pipe-separated list of names sharing the card"
+      - name: IS_SYNTHETIC
+        data_type: boolean
+        description: "True if this is synthetic test data"
+      - name: DATA_SOURCE
+        data_type: varchar
+        description: "Origin of the data — synthetic_2019 or synthetic_fraud_2019"
+      - name: DETECTED_AT
+        data_type: timestamp_ltz
+        description: "Timestamp when the fraud signal was detected"
+        tests:
+          - not_null

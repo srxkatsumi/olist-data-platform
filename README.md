@@ -10,7 +10,7 @@
 ![Metabase](https://img.shields.io/badge/Metabase-509EE3?style=flat&logo=metabase&logoColor=white)
 ![Status](https://img.shields.io/badge/Status-Phase%203%20In%20Progress-blue?style=flat)
 
-**Status: Phase 1 complete — pipeline operational. Phase 2 complete — 29 analyses + 17 mart models delivered. Phase 3 in progress — multi-database architecture implemented.**
+**Status: Phase 1 complete — pipeline operational. Phase 2 complete. Phase 3 in progress — fraud detection model and synthetic data delivered.**
 
 ---
 
@@ -470,6 +470,7 @@ This table documents the real cloud cost of running the pipeline as the project 
 | `mart_peak_hours` | Peak purchase hours broken down by day of the week |
 | `mart_top_category_by_month` | Top selling category by revenue for each month across all years |
 | `mart_seasonal_dates` | Performance of Black Friday, Mothers Day, Christmas and Valentines vs regular days |
+| `mart_fraud_signals` | Customers flagged for fraud signals including shared credit cards, negative payments and invalid delivery dates |
 
 ### Analyses (Phase 2)
 
@@ -523,7 +524,44 @@ All mart models are protected by two layers of validation enforced on every dbt 
 | `unique` | Primary keys to prevent duplicate rows |
 | `accepted_values` | Categorical columns such as ORDER_STATUS, MONTH, DATE_TYPE |
 
-Current test coverage: **49 tests passing across 18 models** with zero failures.
+Current test coverage: **55 tests passing across 19 models** with zero failures.
+
+---
+
+## Fraud Detection
+
+The project includes a rule-based fraud detection model built in dbt.
+
+### Synthetic test data
+
+To enable fraud detection testing, 5,000 synthetic customers were generated and inserted after the original 2016–2018 dataset period. All synthetic records are marked with `is_synthetic = TRUE` and `data_source = 'synthetic_2019'` or `synthetic_fraud_2019`.
+
+| Table | Records | Purpose |
+|---|---|---|
+| `dim_customers_extended` | 5,000 | Synthetic customers with LGPD consent, marketing opt-in, credit card token |
+| `olist_orders_dataset` | +10,152 | Synthetic orders for 2019 |
+| Fraud cluster | 500 customers | Share the same credit card token — intentional fraud pattern for model testing |
+
+> **Important:** All data after 2018 is synthetic and was inserted exclusively for testing purposes. It does not represent real Olist transactions.
+
+### Detection rules
+
+| Rule | Signal | Risk level |
+|---|---|---|
+| Same credit card token, multiple customers (2–4) | Possible card sharing | medium |
+| Same credit card token, multiple customers (5–9) | Probable fraud | high |
+| Same credit card token, 10+ customers | Confirmed fraud cluster | critical |
+| Negative payment value | Data integrity issue | high |
+| Delivery date before purchase date | Data integrity issue | high |
+
+### Model output
+
+Results are stored in `OLIST_OP.MRT.mart_fraud_signals` and refreshed on every dbt run.
+
+Current detection results on synthetic data:
+- 500 customers flagged as `critical` risk
+- 1 shared credit card token across 500 accounts
+- All flagged records confirmed as synthetic fraud test data
 
 ---
 
@@ -547,6 +585,8 @@ This project is a Phase 1 foundation. Here is what a production-grade version lo
 | Replace local PostgreSQL with AWS RDS | Remove the network workaround; RDS lives in the same VPC as Snowflake |
 | Replace local Airflow with AWS MWAA | Managed, scalable orchestration with no infrastructure overhead |
 | ✅ Separate Snowflake databases | `OLIST_DB` (raw) and `OLIST_OP` (STG, MRT, ERR) — fully implemented |
+| ✅ Synthetic data layer | 5,000 synthetic customers with LGPD consent fields, marketing opt-in, and 500 intentional fraud patterns. 10,152 synthetic orders for 2019 inserted for testing purposes. |
+| ✅ Fraud detection model | `mart_fraud_signals` detects shared credit card tokens across multiple customers, classifying risk as critical/high/medium/low. |
 | SCD Type 2 (HST schema in dbt) | Track historical changes in slowly-changing dimensions such as customer address |
 | Incremental dbt models | Only process new or changed records instead of full refresh |
 | Multiple Snowflake warehouses | Separate compute for analytics, pipelines, and dbt with no resource contention |
